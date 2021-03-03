@@ -12,7 +12,7 @@ docker build . -t dependency_analyzer && docker run --name analyzer -p 3000:3000
 npm 13 or higher is required 
 
 ```
-npm start
+npm i && npm start
 ```
 
 ## How to use it
