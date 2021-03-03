@@ -17,8 +17,10 @@ npm i && npm start
 
 ## How to use it
 
+There is a CSV template in `public/sites.csv`, make sure to use that format to make it work.
+
 - Open `http://localhost:3000` on your browser and use the web version
-- use the following curl command and replace CSV file path: 
+- Use the following curl command and replace CSV file path: 
 	```
 	curl --request POST \
 	--url http://localhost:3000/ \
