@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Dependency Analyzer</title>
+		<link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+		<style>
+.loader {
+	border-top-color: #3498db;
+	-webkit-animation: spinner 1.5s linear infinite;
+	animation: spinner 1.5s linear infinite;
+}
+
+		  @-webkit-keyframes spinner {
+			  0% { -webkit-transform: rotate(0deg); }
+			  100% { -webkit-transform: rotate(360deg); }
+		  }
+
+		  @keyframes spinner {
+			  0% { transform: rotate(0deg); }
+			  100% { transform: rotate(360deg); }
+		  }
+		</style>
+</head>
+<body>
+
+<main>
+
+
+	<section class="text-gray-600 body-font">
+		<div class="container px-5 pt-24 mx-auto">
+
+
+			<div class="flex flex-col text-center w-full mb-12">
+				<h1 class="sm:text-3xl text-2xl font-medium title-font mb-4 text-gray-900">Dependency Analyzer</h1>
+					<p class="lg:w-2/3 mx-auto leading-relaxed text-base">Only CSV files are allewed. See the <a href="/sites.csv" download target="_blank" class="text-blue-600">example</a> template.</p>
+			</div>
+			<div class="flex lg:w-2/3 w-full sm:flex-row flex-col mx-auto px-8 sm:space-x-4 sm:space-y-0 space-y-4 sm:px-0 items-end">
+				<div class="relative flex-grow w-full">
+					<label for="file" class="leading-7 text-sm text-gray-600">Upload CSV file</label>
+					<input  id="file" type="file" name="file" class="w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 focus:bg-transparent focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out">
+				</div>
+				<button id="submit" type="button" class="text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg">Upload</button>
+			</div>
+		</div>
+
+		<div class="flex lg:w-2/3 w-full bg-red-100 border border-red-400 text-red-700 px-4 py-3 my-4 rounded relative mx-auto hidden" id="err" role="alert">
+			<strong class="font-bold">Ups!</strong>
+			<span class="ml-4 block sm:inline" id="err-msg">Something seriously bad happened.</span>
+		</div>
+
+	</section>
+
+	<section class="text-gray-600 body-font hidden" id="results-section">
+		<div class="container px-5 py-24 mx-auto">
+			<div class="flex flex-col text-center w-full mb-20">
+				<h1 class="sm:text-4xl text-3xl font-medium title-font text-gray-900">Result</h1>
+			</div>
+			<div class="lg:w-2/3 w-full mx-auto overflow-auto">
+				<table class="table-auto w-full text-left whitespace-no-wrap">
+					<thead>
+						<tr>
+							<th class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100 rounded-tl rounded-bl">Site</th>
+							<th class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100">Resource</th>
+							<th class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100">Bytes</th>
+							<th class="px-4 py-3 title-font tracking-wider font-medium text-gray-900 text-sm bg-gray-100">Frequency</th>
+						</tr>
+					</thead>
+					<tbody id="result">
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</section>
+
+	<div class="flex mx-auto justify-center items-center py-16 hidden" id="loader">
+		<div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-24 w-24"></div>
+	</div>
+
+</main>
+
+	<script>
+		const upload = (file) => {
+			let formData = new FormData()
+			formData.append('file', file)
+			fetch('/', { 
+				method: 'POST',
+				body: formData
+			}).then(
+				response => response.json()
+			).then(
+				data => {
+					if(data.error){
+						document.getElementById('err-msg').innerText = data.error
+						let err = document.getElementById('err')
+						err.classList.remove('hidden')
+						document.getElementById('loader').classList.add('hidden')
+					}
+					if(data.results){
+						let content = document.getElementById('result')
+						data.results.forEach(res => {
+							res.resources.forEach(resource => {
+							content.innerHTML += `
+						<tr>
+							<td class="px-4 py-3">${res.name}</td>
+							<td class="px-4 py-3">${resource.name}</td>
+							<td class="px-4 py-3">${resource.byteLength}</td>
+							<td class="px-4 py-3 text-lg text-gray-900">${resource.frecuency}</td>
+						</tr>
+							`
+							})
+						})
+						document.getElementById('results-section').classList.remove('hidden')
+					}
+					document.getElementById('loader').classList.add('hidden')
+				}
+			).catch(
+				error => {
+					document.getElementById('err-msg').innerText = error
+					let err = document.getElementById('err')
+					err.classList.remove('hidden')
+					document.getElementById('loader').classList.add('hidden')
+				} 
+			);
+		};
+
+		let button = document.getElementById('submit')
+		button.onclick = function(){
+			let file = document.getElementById('file').files[0]
+			if(!file){
+				document.getElementById('err-msg').innerText = 'CSV File is required'
+				let err = document.getElementById('err')
+				err.classList.remove('hidden')
+				return
+			}
+
+			document.getElementById('loader').classList.remove('hidden')
+			this.disabled = true
+			upload(file)
+		}
+	</script>
+</body>
+</html>
